@@ -4,8 +4,15 @@ A hand-picked collection of my n8n workflows, curated from 50+ complex workflows
 
 ## What's Inside
 
-- [Music theory benchmark](benchmark/) - A benchmark focused on rating LLM's on their seventh chord calculation accuracy.
+- [Music Theory Benchmark](benchmark/) - Tests LLM music theory knowledge with seventh chord calculations. Exposes how even advanced models fail at music fundamentals.
 - [Manim AI Video Generator](manim/) - Turns text requests into polished infographic animations. Beats Google Veo 3.1 on text rendering, accuracy, and cost (77–85% cheaper).
+
+## Coming Soon
+
+- **Personal Deep Research AI Crawler** - Advanced web research automation for extracting and synthesizing information with higher accuracy than generic crawlers.
+- **Devin Implementation** - GitHub agent that autonomously solves issues, creates pull requests, and handles complex development tasks.
+- **Productivity Workflows Suite** - Email responder, calendar manager, advanced news aggregator, and other personal automation tools.
+- ...and more
 
 ## Notes
 
