@@ -2,6 +2,28 @@
 
 This benchmark measures how well a model can derive seventh chords from a given scale and chord degree. It generates a dataset of scale/mode/degree prompts, sends them to a model via n8n, and evaluates the model output against the expected chord tones.
 
+## Benchmark Results
+
+Accuracy results across tested models (20 runs each):
+
+| Model | Accuracy | Result | Total Runs |
+|---|---|---|---|
+| google/gemini-2.5-pro | 100% | 1.0 | 20 |
+| google/gemini-3-pro-preview | 95% | 0.95 | 20 |
+| openai/gpt-5.3-codex | 95% | 0.95 | 20 |
+| qwen/qwen3.5-122b-a10b | 75% | 0.75 | 20 |
+| google/gemini-3-flash-preview | 60% | 0.6 | 20 |
+| openai/gpt-4o | 40% | 0.4 | 20 |
+| google/gemini-2.5-flash | 35% | 0.35 | 20 |
+| google/gemini-2.5-flash-lite | 15% | 0.15 | 20 |
+| mistralai/devstral-2512 | 20% | 0.2 | 20 |
+
+*Full results: [seventhChordBenchmarkResults.csv](seventhChordBenchmarkResults.csv)*
+
+## Insights
+
+Higher benchmark scores ≠ better music theory. I've noticed a trend of generational regression where Gemini 3 Pro fails on niche seventh chord logic that Gemini 2.5 Pro handles well. This suggests that while newer models are optimizing for popular benchmarks like MMLU, they may be suffering from overfitting or reasoning dilution in specialized domains like music theory math. This is a reminder that the "newest" model isn't always the most capable for a specialized task.
+
 ## What It Does
 
 - Builds a dataset of seventh-chord prompts across several modes and roots
@@ -88,24 +110,3 @@ The dataset includes seventh chords across various scales and modes. Here's a sa
 
 *Full dataset: [seventhChordBenchmarkDataset.csv](seventhChordBenchmarkDataset.csv)*
 
-## Benchmark Results
-
-Accuracy results across tested models (20 runs each):
-
-| Model | Accuracy | Result | Total Runs |
-|---|---|---|---|
-| google/gemini-2.5-pro | 100% | 1.0 | 20 |
-| google/gemini-3-pro-preview | 95% | 0.95 | 20 |
-| openai/gpt-5.3-codex | 95% | 0.95 | 20 |
-| qwen/qwen3.5-122b-a10b | 75% | 0.75 | 20 |
-| google/gemini-3-flash-preview | 60% | 0.6 | 20 |
-| openai/gpt-4o | 40% | 0.4 | 20 |
-| google/gemini-2.5-flash | 35% | 0.35 | 20 |
-| google/gemini-2.5-flash-lite | 15% | 0.15 | 20 |
-| mistralai/devstral-2512 | 20% | 0.2 | 20 |
-
-*Full results: [seventhChordBenchmarkResults.csv](seventhChordBenchmarkResults.csv)*
-
-## Insights
-
-Higher benchmark scores ≠ better music theory. I've noticed a trend of generational regression where Gemini 3 Pro fails on niche seventh chord logic that Gemini 2.5 Pro handles well. This suggests that while newer models are optimizing for popular benchmarks like MMLU, they may be suffering from overfitting or "reasoning dilution" in specialized domains like music theory math. This serves as a reminder that the "newest" model isn't always the most capable for a specialized task.
