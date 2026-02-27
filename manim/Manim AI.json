@@ -1,0 +1,681 @@
+{
+  "name": "Manim AI",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        -112
+      ],
+      "id": "68020f91-d685-4c26-901a-a9b89b87726f",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bbbdd1e6-da00-425e-aca3-4419da133371",
+              "name": "query",
+              "value": "=### Here are a bunch of manim examples for your reference:\n```python\nfrom manim import *\n\nclass BraceAnnotation(Scene):\n    def construct(self):\n        dot = Dot([-2, -1, 0])\n        dot2 = Dot([2, 1, 0])\n        line = Line(dot.get_center(), dot2.get_center()).set_color(ORANGE)\n        b1 = Brace(line)\n        b1text = b1.get_text(\"Horizontal distance\")\n        b2 = Brace(line, direction=line.copy().rotate(PI / 2).get_unit_vector())\n        b2text = b2.get_tex(\"x-x_1\")\n        self.add(line, dot, dot2, b1, b2, b1text, b2text)\n```\n---\n```python\nfrom manim import *\n\nclass VectorArrow(Scene):\n    def construct(self):\n        dot = Dot(ORIGIN)\n        arrow = Arrow(ORIGIN, [2, 2, 0], buff=0)\n        numberplane = NumberPlane()\n        origin_text = Text('(0, 0)').next_to(dot, DOWN)\n        tip_text = Text('(2, 2)').next_to(arrow.get_end(), RIGHT)\n        self.add(numberplane, dot, arrow, origin_text, tip_text)\n```\n---\n```python\nfrom manim import *\n\nclass GradientImageFromArray(Scene):\n    def construct(self):\n        n = 256\n        imageArray = np.uint8(\n            [[i * 256 / n for i in range(0, n)] for _ in range(0, n)]\n        )\n        image = ImageMobject(imageArray).scale(2)\n        image.background_rectangle = SurroundingRectangle(image, color=GREEN)\n        self.add(image, image.background_rectangle)\n```\n---\n```python\nfrom manim import *\n\nclass BooleanOperations(Scene):\n    def construct(self):\n        ellipse1 = Ellipse(\n            width=4.0, height=5.0, fill_opacity=0.5, color=BLUE, stroke_width=10\n        ).move_to(LEFT)\n        ellipse2 = ellipse1.copy().set_color(color=RED).move_to(RIGHT)\n        bool_ops_text = MarkupText(\"<u>Boolean Operation</u>\").next_to(ellipse1, UP * 3)\n        ellipse_group = Group(bool_ops_text, ellipse1, ellipse2).move_to(LEFT * 3)\n        self.play(FadeIn(ellipse_group))\n\n        i = Intersection(ellipse1, ellipse2, color=GREEN, fill_opacity=0.5)\n        self.play(i.animate.scale(0.25).move_to(RIGHT * 5 + UP * 2.5))\n        intersection_text = Text(\"Intersection\", font_size=23).next_to(i, UP)\n        self.play(FadeIn(intersection_text))\n\n        u = Union(ellipse1, ellipse2, color=ORANGE, fill_opacity=0.5)\n        union_text = Text(\"Union\", font_size=23)\n        self.play(u.animate.scale(0.3).next_to(i, DOWN, buff=union_text.height * 3))\n        union_text.next_to(u, UP)\n        self.play(FadeIn(union_text))\n\n        e = Exclusion(ellipse1, ellipse2, color=YELLOW, fill_opacity=0.5)\n        exclusion_text = Text(\"Exclusion\", font_size=23)\n        self.play(e.animate.scale(0.3).next_to(u, DOWN, buff=exclusion_text.height * 3.5))\n        exclusion_text.next_to(e, UP)\n        self.play(FadeIn(exclusion_text))\n\n        d = Difference(ellipse1, ellipse2, color=PINK, fill_opacity=0.5)\n        difference_text = Text(\"Difference\", font_size=23)\n        self.play(d.animate.scale(0.3).next_to(u, LEFT, buff=difference_text.height * 3.5))\n        difference_text.next_to(d, UP)\n        self.play(FadeIn(difference_text))\n```\n---\n```python\nfrom manim import *\n\nclass PointMovingOnShapes(Scene):\n    def construct(self):\n        circle = Circle(radius=1, color=BLUE)\n        dot = Dot()\n        dot2 = dot.copy().shift(RIGHT)\n        self.add(dot)\n\n        line = Line([3, 0, 0], [5, 0, 0])\n        self.add(line)\n\n        self.play(GrowFromCenter(circle))\n        self.play(Transform(dot, dot2))\n        self.play(MoveAlongPath(dot, circle), run_time=2, rate_func=linear)\n        self.play(Rotating(dot, about_point=[2, 0, 0]), run_time=1.5)\n        self.wait()\n```\n---\n```python\nfrom manim import *\n\nclass MovingAround(Scene):\n    def construct(self):\n        square = Square(color=BLUE, fill_opacity=1)\n\n        self.play(square.animate.shift(LEFT))\n        self.play(square.animate.set_fill(ORANGE))\n        self.play(square.animate.scale(0.3))\n        self.play(square.animate.rotate(0.4))\n```\n---\n```python\nfrom manim import *\n\nclass MovingAngle(Scene):\n    def construct(self):\n        rotation_center = LEFT\n\n        theta_tracker = ValueTracker(110)\n        line1 = Line(LEFT, RIGHT)\n        line_moving = Line(LEFT, RIGHT)\n        line_ref = line_moving.copy()\n        line_moving.rotate(\n            theta_tracker.get_value() * DEGREES, about_point=rotation_center\n        )\n        a = Angle(line1, line_moving, radius=0.5, other_angle=False)\n        tex = MathTex(r\"\\theta\").move_to(\n            Angle(\n                line1, line_moving, radius=0.5 + 3 * SMALL_BUFF, other_angle=False\n            ).point_from_proportion(0.5)\n        )\n\n        self.add(line1, line_moving, a, tex)\n        self.wait()\n\n        line_moving.add_updater(\n            lambda x: x.become(line_ref.copy()).rotate(\n                theta_tracker.get_value() * DEGREES, about_point=rotation_center\n            )\n        )\n\n        a.add_updater(\n            lambda x: x.become(Angle(line1, line_moving, radius=0.5, other_angle=False))\n        )\n        tex.add_updater(\n            lambda x: x.move_to(\n                Angle(\n                    line1, line_moving, radius=0.5 + 3 * SMALL_BUFF, other_angle=False\n                ).point_from_proportion(0.5)\n            )\n        )\n\n        self.play(theta_tracker.animate.set_value(40))\n        self.play(theta_tracker.animate.increment_value(140))\n        self.play(tex.animate.set_color(RED), run_time=0.5)\n        self.play(theta_tracker.animate.set_value(350))\n```\n---\n```python\nfrom manim import *\n\nclass PolygonOnAxes(Scene):\n    def get_rectangle_corners(self, bottom_left, top_right):\n        return [\n            (top_right[0], top_right[1]),\n            (bottom_left[0], top_right[1]),\n            (bottom_left[0], bottom_left[1]),\n            (top_right[0], bottom_left[1]),\n        ]\n\n    def construct(self):\n        ax = Axes(\n            x_range=[0, 10],\n            y_range=[0, 10],\n            x_length=6,\n            y_length=6,\n            axis_config={\"include_tip\": False},\n        )\n\n        t = ValueTracker(5)\n        k = 25\n\n        graph = ax.plot(\n            lambda x: k / x,\n            color=YELLOW_D,\n            x_range=[k / 10, 10.0, 0.01],\n            use_smoothing=False,\n        )\n\n        def get_rectangle():\n            polygon = Polygon(\n                *[\n                    ax.c2p(*i)\n                    for i in self.get_rectangle_corners(\n                        (0, 0), (t.get_value(), k / t.get_value())\n                    )\n                ]\n            )\n            polygon.stroke_width = 1\n            polygon.set_fill(BLUE, opacity=0.5)\n            polygon.set_stroke(YELLOW_B)\n            return polygon\n\n        polygon = always_redraw(get_rectangle)\n\n        dot = Dot()\n        dot.add_updater(lambda x: x.move_to(ax.c2p(t.get_value(), k / t.get_value())))\n        dot.set_z_index(10)\n\n        self.add(ax, graph, dot)\n        self.play(Create(polygon))\n        self.play(t.animate.set_value(10))\n        self.play(t.animate.set_value(k / 10))\n        self.play(t.animate.set_value(5))\n```\n---\n```python\nfrom manim import *\n\nclass OpeningManim(Scene):\n    def construct(self):\n        title = Tex(r\"This is some \\LaTeX\")\n        basel = MathTex(r\"\\sum_{n=1}^\\infty \\frac{1}{n^2} = \\frac{\\pi^2}{6}\")\n        VGroup(title, basel).arrange(DOWN)\n        self.play(\n            Write(title),\n            FadeIn(basel, shift=DOWN),\n        )\n        self.wait()\n\n        transform_title = Tex(\"That was a transform\")\n        transform_title.to_corner(UP + LEFT)\n        self.play(\n            Transform(title, transform_title),\n            LaggedStart(*[FadeOut(obj, shift=DOWN) for obj in basel]),\n        )\n        self.wait()\n\n        grid = NumberPlane()\n        grid_title = Tex(\"This is a grid\", font_size=72)\n        grid_title.move_to(transform_title)\n\n        self.add(grid, grid_title)  # Make sure title is on top of grid\n        self.play(\n            FadeOut(title),\n            FadeIn(grid_title, shift=UP),\n            Create(grid, run_time=3, lag_ratio=0.1),\n        )\n        self.wait()\n\n        grid_transform_title = Tex(\n            r\"That was a non-linear function \\\\ applied to the grid\"\n        )\n        grid_transform_title.move_to(grid_title, UL)\n        grid.prepare_for_nonlinear_transform()\n        self.play(\n            grid.animate.apply_function(\n                lambda p: p\n                          + np.array(\n                    [\n                        np.sin(p[1]),\n                        np.sin(p[0]),\n                        0,\n                    ]\n                )\n            ),\n            run_time=3,\n        )\n        self.wait()\n        self.play(Transform(grid_title, grid_transform_title))\n        self.wait()\n```\n---\n```python\nfrom manim import *\n\nclass ThreeDSurfacePlot(ThreeDScene):\n    def construct(self):\n        resolution_fa = 24\n        self.set_camera_orientation(phi=75 * DEGREES, theta=-30 * DEGREES)\n\n        def param_gauss(u, v):\n            x = u\n            y = v\n            sigma, mu = 0.4, [0.0, 0.0]\n            d = np.linalg.norm(np.array([x - mu[0], y - mu[1]]))\n            z = np.exp(-(d ** 2 / (2.0 * sigma ** 2)))\n            return np.array([x, y, z])\n\n        gauss_plane = Surface(\n            param_gauss,\n            resolution=(resolution_fa, resolution_fa),\n            v_range=[-2, +2],\n            u_range=[-2, +2]\n        )\n\n        gauss_plane.scale(2, about_point=ORIGIN)\n        gauss_plane.set_style(fill_opacity=1,stroke_color=GREEN)\n        gauss_plane.set_fill_by_checkerboard(ORANGE, BLUE, opacity=0.5)\n        axes = ThreeDAxes()\n        self.add(axes,gauss_plane)\n```\n---\n```python\nfrom manim import *\n\nclass MovingZoomedSceneAround(ZoomedScene):\n# contributed by TheoremofBeethoven, www.youtube.com/c/TheoremofBeethoven\n    def __init__(self, **kwargs):\n        ZoomedScene.__init__(\n            self,\n            zoom_factor=0.3,\n            zoomed_display_height=1,\n            zoomed_display_width=6,\n            image_frame_stroke_width=20,\n            zoomed_camera_config={\n                \"default_frame_stroke_width\": 3,\n                },\n            **kwargs\n        )\n\n    def construct(self):\n        dot = Dot().shift(UL * 2)\n        image = ImageMobject(np.uint8([[0, 100, 30, 200],\n                                       [255, 0, 5, 33]]))\n        image.height = 7\n        frame_text = Text(\"Frame\", color=PURPLE, font_size=67)\n        zoomed_camera_text = Text(\"Zoomed camera\", color=RED, font_size=67)\n\n        self.add(image, dot)\n        zoomed_camera = self.zoomed_camera\n        zoomed_display = self.zoomed_display\n        frame = zoomed_camera.frame\n        zoomed_display_frame = zoomed_display.display_frame\n\n        frame.move_to(dot)\n        frame.set_color(PURPLE)\n        zoomed_display_frame.set_color(RED)\n        zoomed_display.shift(DOWN)\n\n        zd_rect = BackgroundRectangle(zoomed_display, fill_opacity=0, buff=MED_SMALL_BUFF)\n        self.add_foreground_mobject(zd_rect)\n\n        unfold_camera = UpdateFromFunc(zd_rect, lambda rect: rect.replace(zoomed_display))\n\n        frame_text.next_to(frame, DOWN)\n\n        self.play(Create(frame), FadeIn(frame_text, shift=UP))\n        self.activate_zooming()\n\n        self.play(self.get_zoomed_display_pop_out_animation(), unfold_camera)\n        zoomed_camera_text.next_to(zoomed_display_frame, DOWN)\n        self.play(FadeIn(zoomed_camera_text, shift=UP))\n        # Scale in        x   y  z\n        scale_factor = [0.5, 1.5, 0]\n        self.play(\n            frame.animate.scale(scale_factor),\n            zoomed_display.animate.scale(scale_factor),\n            FadeOut(zoomed_camera_text),\n            FadeOut(frame_text)\n        )\n        self.wait()\n        self.play(ScaleInPlace(zoomed_display, 2))\n        self.wait()\n        self.play(frame.animate.shift(2.5 * DOWN))\n        self.wait()\n        self.play(self.get_zoomed_display_pop_out_animation(), unfold_camera, rate_func=lambda t: smooth(1 - t))\n        self.play(Uncreate(zoomed_display_frame), FadeOut(frame))\n        self.wait()\n```\n---\nAnd with this in mind...\n# {{ $('When Executed by Another Workflow').item.json.query }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        -112
+      ],
+      "id": "ffd20da9-e77c-4fe5-a7d2-a9aa39b88d94",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3ecb4cfb-c067-40d9-830b-f236eba27910",
+              "name": "query",
+              "value": "=By this query:\n```markdown\n{{ $('When Executed by Another Workflow').item.json.query }}\n```\nYou created this animation:\n```python\n{{ $('AI Agent').item.json.output.code }}\n```\nHowever this code returned an error, fix it:\n{{ $json.stderr }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        -304
+      ],
+      "id": "f155b8a2-4ae8-4ffb-9239-cdc54050898a",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"code\": \"from manim import *\\n\\nclass ShapeTransformation(Scene):\\n def construct(self):\\n colors = [BLUE, RED]\\n circle = Circle(color=colors[0])\\n square = Square(color=colors[1])\\n triangle = Triangle(color=colors[1]).scale(1.5)\\n\\n self.play(Create(circle))\\n self.play(Transform(circle, square), run_time=2)\\n self.play(Transform(circle, triangle), run_time=2)\\n self.wait()\\n\",\n\t\"class_name\": \"ShapeTransformation\",\n    \"explanation\": \"This code draws various shapes transforming into each other.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        128
+      ],
+      "id": "46f09b31-6e70-4f73-af93-e32c6902520e",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5.2",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        0,
+        128
+      ],
+      "id": "5f3c6df0-8988-4711-bd5b-314a543ba65f",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "buGKMFRjxQ2KU8gR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "vgjh4G2ypiuss5JQ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/vgjh4G2ypiuss5JQ",
+          "cachedResultName": "Create Manim Animation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "code": "={{ $json.output.code }}",
+            "fps": 30,
+            "height": 480,
+            "width": 854,
+            "className": "={{ $json.output.class_name }}"
+          },
+          "matchingColumns": [
+            "output_code",
+            "output_class_name"
+          ],
+          "schema": [
+            {
+              "id": "code",
+              "displayName": "code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "className",
+              "displayName": "className",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "width",
+              "displayName": "width",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "height",
+              "displayName": "height",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "fps",
+              "displayName": "fps",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        -320
+      ],
+      "name": "Call Create Manim Animation",
+      "id": "92306061-0419-42b3-b25f-3a4e5575c1d4",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content.parts[0].text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a report formatter, you should format the report and write whether the animation is accepatable or not."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        784,
+        -112
+      ],
+      "id": "05ee6f63-c618-4a0e-ae7d-abadd6eadc82",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"review\": \"This animation uses the correct font, however the background color is black.\",\n  \"accepted\": false,\n  \"fix\": \"Make background be white.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        912,
+        112
+      ],
+      "id": "e6e0df75-d9c0-4985-9cfd-c536726fb536",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        784,
+        112
+      ],
+      "id": "ce28855d-42c0-48c2-bbe1-de99856369b1",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "buGKMFRjxQ2KU8gR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "text": "=What's in this video? Please explain what is shown in this animation. Please tell me what colors are used, what shape is everything and etc.\nTell me if the video fits these guidelines:\n* The video background should be white, text should be black, elements should not blend in with the background.\n* The video is in 16:9 aspect ratio. Animations shouldn't go out of bounds.\n* Text should be clearly visible and not overlap with any other text. It's allowed for text to overlap with elements as long as the text is visible.\n* The Arial font.",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -112
+      ],
+      "id": "e35d440d-4306-4745-82e9-7d75a0791c77",
+      "name": "Analyze video",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "aEm4bmGJH6WVlnGo",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3ecb4cfb-c067-40d9-830b-f236eba27910",
+              "name": "query",
+              "value": "=By this query:\n```markdown\n{{ $('When Executed by Another Workflow').item.json.query }}\n```\nYou created this animation:\n```python\n{{ $('AI Agent').item.json.output.code }}\n```\nHowever, the animation does not fit the guidelines.\n{{ $json.output.fix }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1360,
+        112
+      ],
+      "id": "0ff95aac-bfda-47d6-a0fd-c48ad65ecfcb",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1eba406b-fed5-4d28-a42f-7b03fe019f48",
+              "leftValue": "={{ $json.output.accepted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1136,
+        -112
+      ],
+      "id": "16c8ec54-c9ba-47fa-a404-6405d7a4ce6d",
+      "name": "If1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "vgjh4G2ypiuss5JQ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/vgjh4G2ypiuss5JQ",
+          "cachedResultName": "Create Manim Animation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "code": "={{ $('AI Agent').item.json.output.code }}",
+            "fps": 30,
+            "height": 720,
+            "width": 1280,
+            "className": "={{ $('AI Agent').item.json.output.class_name }}"
+          },
+          "matchingColumns": [
+            "output_code",
+            "output_class_name"
+          ],
+          "schema": [
+            {
+              "id": "code",
+              "displayName": "code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "className",
+              "displayName": "className",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "width",
+              "displayName": "width",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "height",
+              "displayName": "height",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "fps",
+              "displayName": "fps",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1360,
+        -160
+      ],
+      "name": "Call Create Manim Animation1",
+      "id": "a90e3f09-37b6-4307-b1f6-2c4d5c990987"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a python manim professional. Your task is to take the user's idea and bring it to life using the manim python library. Please provide the code as well as the class name for python to run.\nYou should follow these video guidelines:\n* The video background should be white, text should be black, elements should not blend in with the background.\n* The video is in 16:9 aspect ratio. Keep this in mind so animations don't go out of bounds.\n* Use color sparingly, stick to shades of blue unless there's a good reason not to.\n* Don't use a lot of text.\n* You are making a single scene/visualization, don't go overboard."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        -112
+      ],
+      "id": "390723cb-7e2f-48c1-95cf-2bfc3a05da79",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eba38911-414b-4c58-bfa8-6e42aa7a529d",
+              "leftValue": "={{ $json.returncode }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        -320
+      ],
+      "id": "a17a7b8d-41e0-4708-8941-1801fc55ea87",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ ($('When Executed by Another Workflow').item.json.query + $now).hash() }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        144
+      ],
+      "id": "e153e18c-b719-42d9-b62a-d9e2a56e9919",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "Make a graph that British children's average scores on the Raven's Progressive Matrices test rose by 14 IQ points from 1942 to 2008. The graph visualizes the Flynn effect, it's the substantial and long-sustained increase in both fluid and crystallized intelligence test scores that were measured in many parts of the world over the 20th century, named after researcher James Flynn (1934–2020). Use animations and make it look fancy."
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Create Manim Animation": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze video": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Call Create Manim Animation1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Call Create Manim Animation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analyze video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "41b5ff15-950a-4e45-b064-1b8db85771d1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4a01a19c6306e5bdd81a4bd917abcd58b7465925bc8f2aa7bf9259ad92527d8b"
+  },
+  "id": "X2F3ghl88pEFDINh",
+  "tags": []
+}

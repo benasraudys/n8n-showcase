@@ -5,6 +5,7 @@ A hand-picked collection of my n8n workflows, curated from 50+ complex workflows
 ## What's Inside
 
 - [Music theory benchmark](benchmark/) - A benchmark focused on rating LLM's on their seventh chord calculation accuracy.
+- [Manim AI Video Generator](manim/) - Turns text requests into polished infographic animations. Beats Google Veo 3.1 on text rendering, accuracy, and cost (77–85% cheaper).
 
 ## Notes
 
