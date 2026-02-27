@@ -1,0 +1,904 @@
+{
+  "name": "Evaluation",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Make a seventh chord in the key of {{ $json.scaleRoot }} {{ $json.scaleMode }} from the {{ $json.chordDegree }} chord degree. Use the correct accidentals.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a music helper assistant. Answer the user's query in correct json and nothing else.",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        32,
+        200
+      ],
+      "id": "5a06d800-dbb9-47a4-a69f-945c867dfbf3",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "modelName"
+            },
+            {
+              "name": "totalRuns",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -416,
+        52
+      ],
+      "id": "46163a9e-beed-4228-a00d-39debc8eb533",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"scaleRoot\": \"F\",\n    \"scaleMode\": \"Dorian\",\n    \"chordDegree\": 2,\n    \"chordNotes\": [\n      \"G\",\n      \"Bb\",\n      \"D\",\n      \"F\"\n    ]\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        168,
+        424
+      ],
+      "id": "e60db054-6c6b-48d5-9600-9c4915c8e762",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": "={{ $('When Executed by Another Workflow').item.json.modelName }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        40,
+        424
+      ],
+      "id": "3e9a2451-9670-41e8-a095-12d824e471b3",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "buGKMFRjxQ2KU8gR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -544
+      ],
+      "id": "87387a5a-5d9f-4e54-bc1b-af7d3bc30f90",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rootNotes = [\"C#\", \"Db\", \"D#\", \"Eb\", \"F#\", \"Gb\", \"G#\", \"Ab\", \"A#\", \"Bb\"];\n\nconst modes = [\n  { name: \"Dorian\", intervals: [2, 1, 2, 2, 2, 1, 2] },\n  { name: \"Phrygian\", intervals: [1, 2, 2, 2, 1, 2, 2] },\n  { name: \"Lydian\", intervals: [2, 2, 2, 1, 2, 2, 1] },\n  { name: \"Mixolydian\", intervals: [2, 2, 1, 2, 2, 1, 2] },\n  { name: \"Locrian\", intervals: [1, 2, 2, 1, 2, 2, 2] }\n];\n\nconst letters = [\"C\", \"D\", \"E\", \"F\", \"G\", \"A\", \"B\"];\nconst letterPitches = [0, 2, 4, 5, 7, 9, 11]; \n\nfunction parseNote(note) {\n  const letter = note.charAt(0);\n  const letterIndex = letters.indexOf(letter);\n  const accidental = note.slice(1);\n  \n  let pitch = letterPitches[letterIndex];\n  if (accidental === \"#\") pitch += 1;\n  if (accidental === \"##\") pitch += 2;\n  if (accidental === \"b\") pitch -= 1;\n  if (accidental === \"bb\") pitch -= 2;\n  \n  pitch = (pitch + 12) % 12;\n  return { letterIndex, pitch, original: note };\n}\n\nfunction getScale(root, modeIntervals) {\n  let current = parseNote(root);\n  const scale = [current.original];\n  \n  for (let i = 0; i < 6; i++) {\n    const interval = modeIntervals[i];\n    const targetPitch = (current.pitch + interval) % 12;\n    const targetLetterIndex = (current.letterIndex + 1) % 7;\n    const targetBasePitch = letterPitches[targetLetterIndex];\n    \n    let diff = targetPitch - targetBasePitch;\n    if (diff < -6) diff += 12;\n    if (diff > 6) diff -= 12;\n\n    let accidental = \"\";\n    if (diff === 1) accidental = \"#\";\n    if (diff === 2) accidental = \"##\";\n    if (diff === -1) accidental = \"b\";\n    if (diff === -2) accidental = \"bb\";\n\n    const newNoteName = letters[targetLetterIndex] + accidental;\n    current = { letterIndex: targetLetterIndex, pitch: targetPitch, original: newNoteName };\n    scale.push(newNoteName);\n  }\n  return scale;\n}\n\nfunction identifyChordName(rootName, intervals) {\n  const third = intervals[1];\n  const fifth = intervals[2];\n  const seventh = intervals[3];\n\n  let suffix = \"\";\n  if (third === 4 && fifth === 7 && seventh === 11) suffix = \"maj7\";\n  else if (third === 3 && fifth === 7 && seventh === 10) suffix = \"m7\";\n  else if (third === 4 && fifth === 7 && seventh === 10) suffix = \"7\"; \n  else if (third === 3 && fifth === 6 && seventh === 10) suffix = \"m7b5\"; \n  else if (third === 3 && fifth === 6 && seventh === 9) suffix = \"dim7\";\n  else if (third === 3 && fifth === 7 && seventh === 11) suffix = \"m(maj7)\";\n  else if (third === 4 && fifth === 8 && seventh === 11) suffix = \"maj7#5\";\n  else suffix = \"(?)\"; \n\n  return rootName + suffix;\n}\n\nconst allCombinations = [];\n\nfor (const root of rootNotes) {\n  for (const mode of modes) {\n    const scaleArr = getScale(root, mode.intervals);\n\n    for (let degree = 1; degree <= 7; degree++) {\n      const rootIndex = degree - 1;\n      const thirdIndex = (rootIndex + 2) % 7;\n      const fifthIndex = (rootIndex + 4) % 7;\n      const seventhIndex = (rootIndex + 6) % 7;\n\n      const chordNotes = [\n        scaleArr[rootIndex],\n        scaleArr[thirdIndex],\n        scaleArr[fifthIndex],\n        scaleArr[seventhIndex]\n      ];\n\n      const rootPitch = parseNote(chordNotes[0]).pitch;\n      const intervals = [0];\n      for(let i = 1; i < 4; i++) {\n        let p = parseNote(chordNotes[i]).pitch;\n        let diff = p - rootPitch;\n        if (diff < 0) diff += 12;\n        intervals.push(diff);\n      }\n\n      const chordName = identifyChordName(chordNotes[0], intervals);\n\n      allCombinations.push({\n        json: {\n          scaleRoot: root,\n          scaleMode: mode.name,\n          chordDegree: degree,\n          seventhChord: chordName,\n          chordNotes: chordNotes,\n          fullScale: scaleArr\n        }\n      });\n    }\n  }\n}\n\nreturn allCombinations;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        -544
+      ],
+      "id": "a30526d2-1ab9-4867-9275-10c2cbbfa6a5",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "type": "random"
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -544
+      ],
+      "id": "6a370070-c4bd-4dd5-8784-94013b6fda59",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "maxItems": 20
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -544
+      ],
+      "id": "963532c4-8ebd-478e-a2f9-0ab792794e91",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "smOgz2oNudKFbfZl",
+          "mode": "list",
+          "cachedResultName": "seventhChordBenchmarkDataset",
+          "cachedResultUrl": "/projects/iiIJpbAiKZjLtFdz/datatables/smOgz2oNudKFbfZl"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "scaleRoot": "={{ $json.scaleRoot }}",
+            "scaleMode": "={{ $json.scaleMode }}",
+            "chordDegree": "={{ $json.chordDegree }}",
+            "fullScale": "={{ $json.fullScale.join(';') }}",
+            "chordNotes": "={{ $json.chordNotes.join(';') }}",
+            "seventhChord": "={{ $json.seventhChord }}"
+          },
+          "matchingColumns": [
+            "scaleRoot"
+          ],
+          "schema": [
+            {
+              "id": "scaleRoot",
+              "displayName": "scaleRoot",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scaleMode",
+              "displayName": "scaleMode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "chordDegree",
+              "displayName": "chordDegree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fullScale",
+              "displayName": "fullScale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "chordNotes",
+              "displayName": "chordNotes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "seventhChord",
+              "displayName": "seventhChord",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -544
+      ],
+      "id": "d2d150af-33ae-46d3-bb73-b176f8f24c55",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "content": "## Generate dataset",
+        "height": 208,
+        "width": 1152,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -488,
+        -592
+      ],
+      "id": "5d756d05-727a-460a-906d-5d36b5b2a487",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "smOgz2oNudKFbfZl",
+          "mode": "list",
+          "cachedResultName": "seventhChordBenchmarkDataset",
+          "cachedResultUrl": "/projects/iiIJpbAiKZjLtFdz/datatables/smOgz2oNudKFbfZl"
+        },
+        "limit": "={{ $json.totalRuns }}"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        52
+      ],
+      "id": "f3c69546-bf17-42c5-b3de-31b71f951a98",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1888f8e7-fac4-41ce-becb-35c9a4aa4c1d",
+              "name": "chordNotes",
+              "value": "={{ $json.chordNotes.split(';') }}",
+              "type": "array"
+            },
+            {
+              "id": "d210887a-c82f-4c75-8717-044bfa5746a6",
+              "name": "fullScale",
+              "value": "={{ $json.fullScale.split(';') }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        -96
+      ],
+      "id": "ddb3b1c5-c4df-448f-aa5e-2d5f111ea83b",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "chordNotes",
+              "renameField": true,
+              "outputFieldName": "resultsList"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        832,
+        148
+      ],
+      "id": "cfb3c871-2801-4557-ab6a-23f553b3260d",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "333cee4c-98df-4051-afce-c0b8ae239eb5",
+              "name": "failed",
+              "value": "={{ $json.resultsList.length }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1056,
+        148
+      ],
+      "id": "31c6450f-857a-4fb7-a580-7cf6976d7b0b",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "333cee4c-98df-4051-afce-c0b8ae239eb5",
+              "name": "success",
+              "value": "={{ $json.resultsList.length }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1056,
+        -44
+      ],
+      "id": "a4592f97-e2a0-4bee-869e-d2545f8c529c",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "chordNotes",
+              "renameField": true,
+              "outputFieldName": "resultsList"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -44
+      ],
+      "id": "aa236eb0-b6bd-4d9e-84dd-49bcf1a71556",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1be17df4-8ab0-4f5c-8eaf-9b11316594d5",
+              "name": "success",
+              "value": "={{ $json.success || $('When Executed by Another Workflow').item.json.totalRuns - $json.failed }}",
+              "type": "number"
+            },
+            {
+              "id": "4e5408fa-ccdf-4ee2-813b-141e107a0317",
+              "name": "failed",
+              "value": "={{ $json.failed || $('When Executed by Another Workflow').item.json.totalRuns - $json.success }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        52
+      ],
+      "id": "684b5a9a-8bcb-445f-8399-0f4a60e7cd5e",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "388cad3f-4eb2-4418-8ea2-32dc431d448e",
+              "leftValue": "={{ $json.chordNotes.join() }}",
+              "rightValue": "={{ $json.output[0].chordNotes.join() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        52
+      ],
+      "id": "d25e9234-c23a-4cab-b823-08ad734d9caf",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        384,
+        52
+      ],
+      "id": "86921cea-876b-48db-82dd-9e881ba3c309",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "formTitle": "Test Model",
+        "formDescription": "Test a model's performance",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Openrouter Model",
+              "placeholder": "google/gemini-2.5-flash",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Total Runs",
+              "fieldType": "number",
+              "placeholder": "1-20"
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        -320
+      ],
+      "id": "3793fbb2-c43b-422c-9f0f-69d7ebc7f846",
+      "name": "On form submission",
+      "webhookId": "297f80d2-55e3-4430-a54a-fd5a336f839b"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "leivdzFITOPBYYX8",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/leivdzFITOPBYYX8",
+          "cachedResultName": "Evaluation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "modelName": "={{ $json['Openrouter Model'] }}",
+            "totalRuns": "={{ $json['Total Runs'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "modelName",
+              "displayName": "modelName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "totalRuns",
+              "displayName": "totalRuns",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        -320
+      ],
+      "id": "47ecb56b-c45c-4526-a23c-5601f7efa024",
+      "name": "Call 'Evaluation'"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "=Model {{ $json.model }} tested.",
+        "completionMessage": "=Achieved: {{ $json.resultText }}",
+        "limitWaitTime": true,
+        "resumeUnit": "minutes",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        32,
+        -320
+      ],
+      "id": "620cf4f1-20ec-4844-a6ce-ddf65b0f19a7",
+      "name": "Form",
+      "webhookId": "28afc1d5-65a8-47b0-83a6-bdc1eb71d5c3"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "wP8USYFeFmtCEkPu",
+          "mode": "list",
+          "cachedResultName": "seventhChordBenchmarkResults",
+          "cachedResultUrl": "/projects/iiIJpbAiKZjLtFdz/datatables/wP8USYFeFmtCEkPu"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "model",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.modelName }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "model": "={{ $('When Executed by Another Workflow').item.json.modelName }}",
+            "totalRuns": "={{ $('When Executed by Another Workflow').item.json.totalRuns }}",
+            "resultFraction": "={{ (($json.success / $('When Executed by Another Workflow').item.json.totalRuns)) || ((($('When Executed by Another Workflow').item.json.totalRuns-$json.failed)/$('When Executed by Another Workflow').item.json.totalRuns)) }}",
+            "resultText": "={{ (($json.success / $('When Executed by Another Workflow').item.json.totalRuns)*100) || ((($('When Executed by Another Workflow').item.json.totalRuns-$json.failed)/$('When Executed by Another Workflow').item.json.totalRuns)*100) }}%"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "model",
+              "displayName": "model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "resultText",
+              "displayName": "resultText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "resultFraction",
+              "displayName": "resultFraction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "totalRuns",
+              "displayName": "totalRuns",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        52
+      ],
+      "id": "b2aac1f5-4a9b-40a9-a3d7-410077a04704",
+      "name": "Upsert row(s)"
+    },
+    {
+      "parameters": {
+        "content": "## Run the benchmark",
+        "height": 208,
+        "width": 704
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -488,
+        -368
+      ],
+      "id": "29b3f736-75fa-4533-8d5d-825b3cdb4097",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Call 'Evaluation'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Evaluation'": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fc5e239b-8183-4696-86f6-1860118ff2d8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4a01a19c6306e5bdd81a4bd917abcd58b7465925bc8f2aa7bf9259ad92527d8b"
+  },
+  "id": "leivdzFITOPBYYX8",
+  "tags": []
+}
